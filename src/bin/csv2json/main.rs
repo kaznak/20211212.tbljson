@@ -1,4 +1,3 @@
-//tutorial-read-01.rs
 extern crate csv;
 
 use std::env;
@@ -7,9 +6,30 @@ use std::fs::File;
 use std::io;
 use std::process;
 
-fn run<R: io::Read>(reader_raw: R) -> Result<(), Box<dyn Error>> {
+struct Config {
+    reader: Box<dyn io::Read>,
+    has_headers: bool,
+}
+
+fn parse_args() -> Config {
+    let reader_raw: Box<dyn io::Read> = match env::args().nth(1) {
+        None => Box::new(io::stdin()),
+        Some(file_path) => Box::new(File::open(file_path).unwrap_or_else(|err| {
+            println!("{}", err);
+            process::exit(1);
+        })),
+    };
+    Config {
+        reader: reader_raw,
+        has_headers: false,
+    }
+}
+
+fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let mut reader_builder = csv::ReaderBuilder::new();
-    let mut rdr = reader_builder.has_headers(false).from_reader(reader_raw);
+    let mut rdr = reader_builder
+        .has_headers(config.has_headers)
+        .from_reader(config.reader);
     for result in rdr.records() {
         let record = result?;
         println!("{:?}", record);
@@ -18,14 +38,8 @@ fn run<R: io::Read>(reader_raw: R) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
-    let reader_raw: Box<dyn io::Read> = match env::args().nth(1) {
-        None => Box::new(io::stdin()),
-        Some(file_path) => Box::new(File::open(file_path).unwrap_or_else(|err| {
-            println!("{}", err);
-            process::exit(1);
-        })),
-    };
-    if let Err(err) = run(reader_raw) {
+    let config = parse_args();
+    if let Err(err) = run(config) {
         println!("{}", err);
         process::exit(1);
     }
