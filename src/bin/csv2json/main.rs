@@ -3,26 +3,30 @@ extern crate csv;
 
 use std::env;
 use std::error::Error;
-use std::ffi::OsString;
+use std::fs::File;
+use std::io;
 use std::process;
 
+
 fn run() -> Result<(), Box<dyn Error>> {
-    let file_path = get_first_arg()?;
-    let mut rdr = csv::Reader::from_path(file_path)?;
-    for result in rdr.records() {
-        let record = result?;
-        println!("{:?}", record);
+    let mut reader_builder = csv::ReaderBuilder::new();
+    reader_builder.has_headers(false);
+    let path_result = env::args().nth(1);
+    if None == path_result {
+        let mut rdr = reader_builder.from_reader(io::stdin());
+        for result in rdr.records() {
+            let record = result?;
+            println!("{:?}", record);
+        }
+    } else {
+        let file_path = path_result.unwrap();
+        let mut rdr = reader_builder.from_reader(File::open(file_path)?);
+        for result in rdr.records() {
+            let record = result?;
+            println!("{:?}", record);
+        }
     }
     Ok(())
-}
-
-/// このプロセスに送られた最初の固定引数を返す
-/// 固定引数がなかった場合エラーを返す。
-fn get_first_arg() -> Result<OsString, Box<dyn Error>> {
-    match env::args_os().nth(1) {
-        None => Err(From::from("expected 1 argument, but got none")),
-        Some(file_path) => Ok(file_path),
-    }
 }
 
 fn main() {
