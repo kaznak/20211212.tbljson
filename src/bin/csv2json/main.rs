@@ -21,7 +21,10 @@ fn run<R: io::Read>(reader_raw: R) -> Result<(), Box<dyn Error>> {
 fn main() {
     let reader_raw: Box<dyn io::Read> = match env::args().nth(1) {
         None => Box::new(io::stdin()),
-        Some(file_path) => Box::new(File::open(file_path).unwrap()),
+        Some(file_path) => Box::new(File::open(file_path).unwrap_or_else(|err| {
+            println!("{}", err);
+            process::exit(1);    
+        })),
     };
     if let Err(err) = run(reader_raw) {
         println!("{}", err);
