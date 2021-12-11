@@ -12,7 +12,7 @@ struct Config {
 }
 
 fn parse_args() -> Config {
-    let reader_raw: Box<dyn io::Read> = match env::args().nth(1) {
+    let reader: Box<dyn io::Read> = match env::args().nth(1) {
         None => Box::new(io::stdin()),
         Some(file_path) => Box::new(File::open(file_path).unwrap_or_else(|err| {
             println!("{}", err);
@@ -20,7 +20,7 @@ fn parse_args() -> Config {
         })),
     };
     Config {
-        reader: reader_raw,
+        reader,
         has_headers: false,
     }
 }
