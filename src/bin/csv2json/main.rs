@@ -19,15 +19,9 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut reader_builder = csv::ReaderBuilder::new();
     reader_builder.has_headers(false);
     match env::args().nth(1) {
-        None => {
-            let rdr = reader_builder.from_reader(io::stdin());
-            return do_work(rdr);
-        }
-        Some(file_path) => {
-            let rdr = reader_builder.from_reader(File::open(file_path)?);
-            return do_work(rdr);
-        }
-    };
+        None => do_work(reader_builder.from_reader(io::stdin())),
+        Some(file_path) => do_work(reader_builder.from_reader(File::open(file_path)?)),
+    }
 }
 
 fn main() {
