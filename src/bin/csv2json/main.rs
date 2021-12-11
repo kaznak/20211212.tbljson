@@ -5,10 +5,10 @@ use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::process;
-use std::collections::HashMap;
 
 struct Config {
     reader: Box<dyn io::Read>,
+    writer:  Box<dyn io::Write>,
     has_headers: bool,
 }
 
@@ -20,23 +20,25 @@ fn setup(mut args: env::Args) -> Config {
             process::exit(1);
         })),
     };
+    let writer = Box::new(io::stdout());
     Config {
         reader,
+        writer,
         has_headers: true,
     }
 }
-
-type Record = HashMap<String, String>;
 
 fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let mut reader_builder = csv::ReaderBuilder::new();
     let mut rdr = reader_builder
         .has_headers(config.has_headers)
         .from_reader(config.reader);
-    for result in rdr.deserialize() {
-        let record: Record = result?;
-        println!("{:?}", record);
+    let mut wtr = csv::Writer::from_writer(config.writer);
+    for result in rdr.records() {
+        let record = result?;
+        wtr.write_record(&record)?;
     }
+    wtr.flush()?;
     Ok(())
 }
 
