@@ -7,7 +7,6 @@ use std::fs::File;
 use std::io;
 use std::process;
 
-
 fn run<R: io::Read>(reader_raw: R) -> Result<(), Box<dyn Error>> {
     let mut reader_builder = csv::ReaderBuilder::new();
     let mut rdr = reader_builder.has_headers(false).from_reader(reader_raw);
@@ -23,7 +22,7 @@ fn main() {
         None => Box::new(io::stdin()),
         Some(file_path) => Box::new(File::open(file_path).unwrap_or_else(|err| {
             println!("{}", err);
-            process::exit(1);    
+            process::exit(1);
         })),
     };
     if let Err(err) = run(reader_raw) {
