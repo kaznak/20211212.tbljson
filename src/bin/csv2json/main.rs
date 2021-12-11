@@ -21,17 +21,19 @@ fn setup(mut args: env::Args) -> Config {
     };
     Config {
         reader,
-        has_headers: false,
+        has_headers: true,
     }
 }
+
+type Record = (String, String, Option<u64>, f64, f64);
 
 fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let mut reader_builder = csv::ReaderBuilder::new();
     let mut rdr = reader_builder
         .has_headers(config.has_headers)
         .from_reader(config.reader);
-    for result in rdr.records() {
-        let record = result?;
+    for result in rdr.deserialize() {
+        let record: Record = result?;
         println!("{:?}", record);
     }
     Ok(())
