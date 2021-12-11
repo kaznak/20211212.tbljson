@@ -11,8 +11,8 @@ struct Config {
     has_headers: bool,
 }
 
-fn parse_args() -> Config {
-    let reader: Box<dyn io::Read> = match env::args().nth(1) {
+fn setup(mut args: env::Args) -> Config {
+    let reader: Box<dyn io::Read> = match args.nth(1) {
         None => Box::new(io::stdin()),
         Some(file_path) => Box::new(File::open(file_path).unwrap_or_else(|err| {
             println!("{}", err);
@@ -38,7 +38,7 @@ fn run(config: Config) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
-    let config = parse_args();
+    let config = setup(env::args());
     if let Err(err) = run(config) {
         println!("{}", err);
         process::exit(1);
